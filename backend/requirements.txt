@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+pdfplumber
+python-docx
+python-multipart
+
+fastapi
+uvicorn[standard]
+python-multipart
+pdfplumber
+python-docx
+sqlalchemy
+psycopg[binary]
+python-dotenv
+sentence-transformers
+spacy
+scikit-learn
