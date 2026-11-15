@@ -39,7 +39,7 @@ function App() {
       return;
     }
 
-    if (files.length < 10) {
+    if (files.length < 1) {
       setError("Please upload at least 10 PDF or DOCX resumes.");
       return;
     }
@@ -170,16 +170,16 @@ function App() {
               <div className="upload-icon">↑</div>
               <strong>Click to upload resumes</strong>
               <span>PDF and DOCX files only</span>
-              <span className="upload-limit">Minimum 10 resumes</span>
+              <span className="upload-limit">Upload one or more PDF/DOCX resumes</span>
             </label>
 
             <div className="file-summary">
               <span>{files.length} files selected</span>
-              {files.length >= 10 ? (
-                <span className="valid-text">Ready to process</span>
+              {files.length >= 1 ? (
+              <span className="valid-text">Ready to process</span>
               ) : (
-                <span>{10 - files.length} more required</span>
-              )}
+                 <span>Select at least one resume</span>
+         )}
             </div>
 
             {files.length > 0 && (
