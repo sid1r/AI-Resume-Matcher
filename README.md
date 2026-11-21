@@ -1,3 +1,4 @@
+
 # AI Resume Matcher
 
 An AI-powered resume screening and candidate ranking system that analyzes multiple resumes against a given Job Description (JD). The application extracts candidate information, evaluates skill compatibility, calculates matching scores, and ranks candidates based on their suitability for a job role.
@@ -20,6 +21,7 @@ The system combines Natural Language Processing (NLP), semantic similarity, rule
 - [Running the Application](#running-the-application)
 - [Application Workflow](#application-workflow)
 - [Sample Data](#sample-data)
+- [Recruiter Authentication](#recruiter-authentication)
 - [API Documentation](#api-documentation)
 - [Future Enhancements](#future-enhancements)
 
@@ -60,6 +62,7 @@ This project addresses these challenges by providing an automated resume screeni
 7. Identify matched and missing skills.
 8. Rank candidates based on their overall matching scores.
 9. Provide a dashboard for viewing candidate information and evaluation results.
+10. Provide recruiter authentication and secure access to the application.
 
 ## Key Features
 
@@ -139,6 +142,17 @@ Provides a detailed view of each candidate, including personal information, skil
 - Uses SQLAlchemy for database interaction.
 - Stores Job Descriptions, candidate information, and matching results.
 
+### 10. Recruiter Authentication
+
+- Recruiters can register using their name, email address, and password.
+- Recruiters can log in using their registered credentials.
+- Passwords are securely hashed using Argon2 through pwdlib.
+- JWT access tokens are generated after successful login.
+- Protected backend APIs require a valid JWT bearer token.
+- The frontend stores the access token in browser local storage.
+- The token is automatically included in protected API requests.
+- Recruiters can log out, which clears the locally stored token and returns them to the login screen.
+
 ---
 
 ## Technology Stack
@@ -150,6 +164,8 @@ Provides a detailed view of each candidate, including personal information, skil
 - **SQLAlchemy** – Database ORM.
 - **SQLite** – Database management.
 - **Pydantic** – Data validation and request handling.
+- **pwdlib (Argon2)** – Secure recruiter password hashing.
+- **python-jose** – JWT token creation and validation.
 
 ### Frontend
 
@@ -187,8 +203,8 @@ The application follows a frontend-backend architecture.
                  USER / RECRUITER
                         |
                         v
-               REACT FRONTEND
-                  (Vite)
+                REACT FRONTEND
+                   (Vite)
                         |
                         v
                  FASTAPI BACKEND
@@ -196,34 +212,38 @@ The application follows a frontend-backend architecture.
            +------------+------------+
            |            |            |
            v            v            v
-       Resume       Job Description  Matching
-       Router          Router         Router
+        Auth         Resume      Job Description
+        Router       Router         Router
            |            |            |
            v            v            v
-      Document       JD Parser     Matching
-      Parser                       Service
-           |            |            |
-           v            v            v
-      Candidate     Requirements   Scoring
-      Extractor      Extraction    Algorithm
-           |            |            |
-           +------------+------------+
-                        |
-                        v
-                AI / NLP PROCESSING
-                        |
-              Sentence Transformers
-                        |
-                Cosine Similarity
-                        |
-                        v
-                 CANDIDATE RANKING
-                        |
-                        v
-                  SQLITE DATABASE
-                        |
-                        v
-                MATCHING DASHBOARD
+        Recruiter    Document      JD Parser
+        Login        Parser
+        Register        |
+        JWT             v
+                    Candidate
+                    Extractor
+                         |
+                         v
+                  MATCHING ROUTER
+                         |
+                         v
+                   Matching Service
+                         |
+                         v
+                  AI / NLP PROCESSING
+                         |
+                  Sentence Transformers
+                         |
+                  Cosine Similarity
+                         |
+                         v
+                  CANDIDATE RANKING
+                         |
+                         v
+                    SQLITE DATABASE
+                         |
+                         v
+                  MATCHING DASHBOARD
 ```
 
 ---
@@ -239,6 +259,13 @@ AI-Resume-Matcher/
 │   │   │
 │   │   ├── ai/
 │   │   │   └── __init__.py
+│   │   │
+│   │   ├── auth/
+│   │   │   ├── __init__.py
+│   │   │   ├── auth_models.py
+│   │   │   ├── auth_schemas.py
+│   │   │   ├── auth_service.py
+│   │   │   └── auth_router.py
 │   │   │
 │   │   ├── routers/
 │   │   │   ├── __init__.py
@@ -256,7 +283,8 @@ AI-Resume-Matcher/
 │   │   ├── models.py
 │   │   └── main.py
 │   │
-│   └── requirements.txt
+│   ├── requirements.txt
+│   └── .env
 │
 ├── frontend/
 │   ├── src/
@@ -328,7 +356,7 @@ Make sure the following tools are installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/AI-Resume-Matcher.git
+git clone https://github.com/sid1r/AI-Resume-Matcher.git
 ```
 
 Navigate to the project directory:
@@ -358,7 +386,21 @@ cd backend
 pip install -r requirements.txt
 ```
 
-### 4. Install Frontend Dependencies
+### 4. Configure Authentication Secret
+
+Create a `.env` file inside the `backend` directory.
+
+Add the following:
+
+```env
+AUTH_SECRET_KEY=your_generated_secret_key
+```
+
+Use a strong, unique secret key for `AUTH_SECRET_KEY`.
+
+Keep the `.env` file private. Do not commit it to GitHub.
+
+### 5. Install Frontend Dependencies
 
 Open another terminal:
 
@@ -402,15 +444,19 @@ Open the frontend URL in your browser to use the application.
 
 ## Application Workflow
 
-1. **Upload Resumes:** The recruiter uploads multiple candidate resumes in PDF or DOCX format.
-2. **Document Processing:** The backend extracts text from the uploaded documents.
-3. **Candidate Extraction:** Candidate details, skills, experience, education, certifications, projects, and previous companies are identified.
-4. **Enter Job Description:** The recruiter provides the Job Description for the required position.
-5. **JD Analysis:** The system extracts technical skills, functional skills, experience requirements, and qualifications.
-6. **AI Matching:** Resume and Job Description content are compared using semantic similarity and skill-based evaluation.
-7. **Score Calculation:** The weighted matching algorithm calculates the overall candidate score.
-8. **Candidate Ranking:** Candidates are sorted based on their matching scores.
-9. **View Results:** The recruiter can view candidate rankings, matching breakdowns, matched skills, missing skills, and detailed candidate profiles.
+1. **Recruiter Registration:** A new recruiter creates an account using their name, email, and password.
+2. **Recruiter Login:** The recruiter logs in using their registered credentials.
+3. **Authentication:** The backend validates the credentials and generates a JWT access token.
+4. **Upload Resumes:** The recruiter uploads multiple candidate resumes in PDF or DOCX format.
+5. **Document Processing:** The backend extracts text from the uploaded documents.
+6. **Candidate Extraction:** Candidate details, skills, experience, education, certifications, projects, and previous companies are identified.
+7. **Enter Job Description:** The recruiter provides the Job Description for the required position.
+8. **JD Analysis:** The system extracts technical skills, functional skills, experience requirements, and qualifications.
+9. **AI Matching:** Resume and Job Description content are compared using semantic similarity and skill-based evaluation.
+10. **Score Calculation:** The weighted matching algorithm calculates the overall candidate score.
+11. **Candidate Ranking:** Candidates are sorted based on their matching scores.
+12. **View Results:** The recruiter can view candidate rankings, matching breakdowns, matched skills, missing skills, and detailed candidate profiles.
+13. **Logout:** The recruiter can log out, clearing the locally stored authentication token.
 
 ---
 
@@ -435,6 +481,71 @@ You can use the sample Job Description and resumes to test:
 
 ---
 
+## Recruiter Authentication
+
+The application implements basic recruiter authentication using JWT (JSON Web Tokens).
+
+### Authentication Features
+
+- Recruiter registration.
+- Recruiter login.
+- Password hashing using Argon2.
+- JWT access token generation.
+- JWT token validation.
+- Protected backend API routes.
+- Recruiter account information endpoint.
+- Frontend logout functionality.
+
+### Authentication API Endpoints
+
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| POST | `/auth/register` | Register a new recruiter | Public |
+| POST | `/auth/login` | Authenticate recruiter and generate JWT | Public |
+| GET | `/auth/me` | Retrieve the logged-in recruiter's account details | Protected |
+
+### Protected API Routes
+
+The following application routes require a valid JWT bearer token:
+
+- Resume processing routes.
+- Job Description routes.
+- Candidate matching routes.
+
+The frontend sends the token in the request header:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+### Authentication Process
+
+1. The recruiter registers an account.
+2. The password is hashed using Argon2 before being stored.
+3. During login, the submitted password is verified against the stored password hash.
+4. After successful authentication, the backend generates a JWT access token.
+5. The frontend stores the token in browser local storage.
+6. The token is included in requests to protected backend APIs.
+7. The backend validates the token before allowing access.
+8. The recruiter can log out to clear the locally stored token.
+
+### Security Configuration
+
+The JWT secret key is configured through the backend `.env` file:
+
+```env
+AUTH_SECRET_KEY=your_generated_secret_key
+```
+
+- Passwords are not stored in plain text.
+- JWT access tokens expire after 30 minutes.
+- Secret keys and environment variables must remain private.
+- `.env` files, real passwords, and active JWT tokens should never be committed to GitHub.
+
+**HR Demo Access:** Recruiters can register their own account through the application. If a dedicated demo account is provided for assessment, its email and temporary password should be shared privately with the evaluator, not published in this repository.
+
+---
+
 ## API Documentation
 
 FastAPI provides interactive API documentation through Swagger UI.
@@ -447,6 +558,8 @@ Swagger UI allows you to:
 
 - Explore available API endpoints.
 - View request and response schemas.
+- Register and log in recruiters.
+- Authorize requests using a JWT bearer token.
 - Upload resumes and test API operations.
 - Submit Job Descriptions.
 - Test matching functionality.
@@ -461,7 +574,7 @@ The following features can be considered for future development:
 - More robust handling of different resume layouts and formats.
 - Candidate filtering by experience, skills, and education.
 - Exporting candidate ranking reports to PDF or Excel.
-- Recruiter authentication and role-based access control.
+- Role-based access control with separate recruiter and administrator permissions.
 - Cloud deployment.
 - Advanced analytics and recruitment insights.
 - Integration with Applicant Tracking Systems (ATS).
@@ -470,7 +583,7 @@ The following features can be considered for future development:
 
 ## Project Purpose
 
-This project was developed to demonstrate the practical application of Python backend development, AI/ML, Natural Language Processing, document processing, database management, and frontend integration in an automated recruitment screening system.
+This project was developed to demonstrate the practical application of Python backend development, AI/ML, Natural Language Processing, document processing, database management, authentication, and frontend integration in an automated recruitment screening system.
 
 **AI Resume Matcher – Making Resume Screening Smarter and More Efficient.**
 
@@ -478,15 +591,20 @@ This project was developed to demonstrate the practical application of Python ba
 
 ## Author
 
+<<<<<<< HEAD
 
+=======
 
-**Sidra Rahman**  
+## Author
+
+**Sidra Rahman**
+
 B.Tech – Artificial Intelligence and Machine Learning  
 KNS Institute of Technology, Bengaluru (VTU)
 
 - GitHub: https://github.com/sid1r
-- LinkedIn:  https://www.linkedin.com/in/sidrarahman19
+- LinkedIn: https://www.linkedin.com/in/sidrarahman19
 - Email: sidrarahman01@gmail.com
 
 **Project:** AI Resume Matcher  
-**Technologies:** Python, FastAPI, React, SQLite, Sentence Transformers, Scikit-learn.
+**Technologies:** Python, FastAPI, React, SQLite, Sentence Transformers, Scikit-learn, JWT, Argon2.

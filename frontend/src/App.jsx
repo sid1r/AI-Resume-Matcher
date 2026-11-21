@@ -12,6 +12,96 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [summary, setSummary] = useState(null);
+  // Authentication states
+const [authToken, setAuthToken] = useState(
+  () => localStorage.getItem("authToken") || ""
+);
+
+const [authMode, setAuthMode] = useState("login");
+const [authName, setAuthName] = useState("");
+const [authEmail, setAuthEmail] = useState("");
+const [authPassword, setAuthPassword] = useState("");
+const [authLoading, setAuthLoading] = useState(false);
+const [authError, setAuthError] = useState("");
+const [authSuccess, setAuthSuccess] = useState("");
+
+// Handle recruiter login and registration
+async function handleAuthSubmit(event) {
+  event.preventDefault();
+
+  setAuthError("");
+  setAuthSuccess("");
+  setAuthLoading(true);
+
+  try {
+    if (authMode === "register") {
+      const registerResponse = await fetch(
+        `${API_URL}/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: authName,
+            email: authEmail,
+            password: authPassword,
+          }),
+        }
+      );
+
+      if (!registerResponse.ok) {
+        const data = await registerResponse.json();
+        throw new Error(data.detail || "Registration failed.");
+      }
+
+      setAuthSuccess("Registration successful. Please log in.");
+      setAuthMode("login");
+      setAuthName("");
+      setAuthPassword("");
+      return;
+    }
+
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: authEmail,
+        password: authPassword,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || "Login failed.");
+    }
+
+    localStorage.setItem("authToken", data.access_token);
+    setAuthToken(data.access_token);
+
+    setAuthPassword("");
+    setAuthError("");
+  } catch (err) {
+    setAuthError(err.message || "Something went wrong.");
+  } finally {
+    setAuthLoading(false);
+  }
+}
+
+// Handle recruiter logout
+function handleLogout() {
+  localStorage.removeItem("authToken");
+  setAuthToken("");
+  setAuthPassword("");
+  setFiles([]);
+  setResults([]);
+  setSelectedCandidate(null);
+  setSummary(null);
+  setJdText("");
+}
 
   // Handle resume file selection
   function handleFileChange(event) {
@@ -62,9 +152,12 @@ function App() {
       setSummary(null);
 
       const response = await fetch(`${API_URL}/matching/batch`, {
-        method: "POST",
-        body: formData,
-      });
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${authToken}`,
+  },
+  body: formData,
+});
 
       if (!response.ok) {
         const message = await response.text();
@@ -115,6 +208,97 @@ function App() {
   const analysis =
     selectedCandidate?.matching_analysis || {};
 
+if (!authToken) {
+  return (
+    <div className="app auth-page">
+      <div className="auth-card">
+        <div className="brand-icon auth-logo">AI</div>
+
+        <h2>Resume Matcher</h2>
+        <p className="auth-subtitle">
+          AI-powered candidate evaluation
+        </p>
+
+        <h3>
+          {authMode === "login"
+            ? "Recruiter Login"
+            : "Create Recruiter Account"}
+        </h3>
+
+        <form onSubmit={handleAuthSubmit}>
+          {authMode === "register" && (
+            <input
+              type="text"
+              placeholder="Full name"
+              value={authName}
+              onChange={(e) => setAuthName(e.target.value)}
+              required
+              minLength={2}
+            />
+          )}
+
+          <input
+            type="email"
+            placeholder="Email address"
+            value={authEmail}
+            onChange={(e) => setAuthEmail(e.target.value)}
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Password (minimum 8 characters)"
+            value={authPassword}
+            onChange={(e) => setAuthPassword(e.target.value)}
+            required
+            minLength={8}
+          />
+
+          {authError && (
+            <div className="error-message">{authError}</div>
+          )}
+
+          {authSuccess && (
+            <p className="auth-success">{authSuccess}</p>
+          )}
+
+          <button
+            type="submit"
+            className="match-button auth-submit"
+            disabled={authLoading}
+          >
+            {authLoading
+              ? "Please wait..."
+              : authMode === "login"
+              ? "Login"
+              : "Register"}
+          </button>
+        </form>
+
+        <p className="auth-switch">
+          {authMode === "login"
+            ? "Don't have an account?"
+            : "Already have an account?"}
+
+          <button
+            type="button"
+            onClick={() => {
+              setAuthMode(
+                authMode === "login" ? "register" : "login"
+              );
+              setAuthError("");
+              setAuthSuccess("");
+            }}
+          >
+            {authMode === "login" ? "Register" : "Login"}
+          </button>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+
   return (
     <div className="app">
 
@@ -129,9 +313,15 @@ function App() {
           </div>
         </div>
 
-        <span className="header-label">
-          Recruiter Dashboard
-        </span>
+        <div className="header-actions">
+  <span className="header-label">Recruiter Dashboard</span>
+  <button
+    className="logout-button"
+    onClick={handleLogout}
+  >
+    Logout
+  </button>
+</div>
       </header>
 
       <main className="dashboard">

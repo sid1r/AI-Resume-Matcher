@@ -20,3 +20,7 @@ dist/
 
 # IDE
 .vscode/
+
+# Authentication secrets
+.env.*
+!.env.example
