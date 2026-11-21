@@ -24,7 +24,7 @@ app = FastAPI(
 def create_database_tables():
     Base.metadata.create_all(bind=engine)
 
-frontend_url = os.getenv("FRONTEND_URL")
+frontend_url = os.getenv("FRONTEND_URL", "").strip().rstrip("/")
 
 allowed_origins = [
     "http://localhost:5173",
