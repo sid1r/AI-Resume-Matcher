@@ -2,7 +2,6 @@
 import re
 from functools import lru_cache
 
-from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
 
@@ -13,6 +12,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 @lru_cache(maxsize=1)
 def get_model():
     """Load the sentence transformer model only once."""
+    from sentence_transformers import SentenceTransformer
+
     return SentenceTransformer("all-MiniLM-L6-v2")
 
 
