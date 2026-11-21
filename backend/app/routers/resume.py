@@ -1,7 +1,18 @@
 
 from typing import List
 
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import (
+    APIRouter,
+    UploadFile,
+    File,
+    HTTPException,
+    Depends
+)
+
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app import models
 
 from app.services.document_parser import extract_resume_text
 from app.services.candidate_extractor import extract_candidate_info
@@ -45,6 +56,9 @@ async def extract_resume(file: UploadFile = File(...)):
             raise ValueError("Uploaded file is empty.")
 
         text = extract_resume_text(filename, file_bytes)
+
+        if not text.strip():
+            raise ValueError("Could not extract text from this resume.")
 
         candidate_info = extract_candidate_info(text)
 
@@ -102,6 +116,9 @@ async def batch_extract_resumes(
 
             text = extract_resume_text(filename, file_bytes)
 
+            if not text.strip():
+                raise ValueError("Could not extract text from this resume.")
+
             candidate_info = extract_candidate_info(text)
 
             candidates.append({
@@ -126,4 +143,69 @@ async def batch_extract_resumes(
         "failed": len(failed_files),
         "candidates": candidates,
         "failed_files": failed_files
+    }
+
+
+# ----------------------------------------
+# 3. Retrieve all saved candidates
+# ----------------------------------------
+
+@router.get("/")
+def get_all_candidates(
+    db: Session = Depends(get_db)
+):
+
+    candidates = (
+        db.query(models.Candidate)
+        .order_by(models.Candidate.id.desc())
+        .all()
+    )
+
+    return {
+        "total_candidates": len(candidates),
+        "candidates": [
+            {
+                "id": candidate.id,
+                "name": candidate.name,
+                "email": candidate.email,
+                "phone": candidate.phone,
+                "resume_filename": candidate.resume_filename,
+                "candidate_information": candidate.candidate_information,
+                "created_at": candidate.created_at
+            }
+            for candidate in candidates
+        ]
+    }
+
+
+# ----------------------------------------
+# 4. Retrieve candidate by ID
+# ----------------------------------------
+
+@router.get("/{candidate_id}")
+def get_candidate_by_id(
+    candidate_id: int,
+    db: Session = Depends(get_db)
+):
+
+    candidate = (
+        db.query(models.Candidate)
+        .filter(models.Candidate.id == candidate_id)
+        .first()
+    )
+
+    if not candidate:
+        raise HTTPException(
+            status_code=404,
+            detail="Candidate not found."
+        )
+
+    return {
+        "id": candidate.id,
+        "name": candidate.name,
+        "email": candidate.email,
+        "phone": candidate.phone,
+        "resume_filename": candidate.resume_filename,
+        "candidate_information": candidate.candidate_information,
+        "created_at": candidate.created_at
     }

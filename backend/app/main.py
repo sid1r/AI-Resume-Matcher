@@ -5,6 +5,8 @@ from fastapi.openapi.utils import get_openapi
 from app.routers.resume import router as resume_router
 from app.routers.jd import router as jd_router
 from app.routers.matching import router as matching_router
+from app.database import Base, engine
+from app import models
 
 
 app = FastAPI(
@@ -12,6 +14,10 @@ app = FastAPI(
     description="AI-based Resume Matching and Candidate Ranking API",
     version="1.0.0"
 )
+@app.on_event("startup")
+def create_database_tables():
+    Base.metadata.create_all(bind=engine)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],

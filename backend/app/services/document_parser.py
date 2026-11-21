@@ -6,9 +6,83 @@ import pdfplumber
 from docx import Document
 
 
+TECH_TERMS = [
+    "FastAPI",
+    "PostgreSQL",
+    "Scikit-learn",
+    "JavaScript",
+    "MySQL",
+    "MongoDB",
+    "Django",
+    "Docker",
+    "Python",
+    "Flask",
+    "React",
+    "AWS",
+    "Linux",
+    "Kubernetes",
+    "TensorFlow",
+    "PyTorch",
+    "GitHub",
+    "REST API",
+]
+
+SECTION_HEADINGS = [
+    "PROFESSIONAL SUMMARY",
+    "WORK EXPERIENCE",
+    "EDUCATION",
+    "TECHNICAL SKILLS",
+    "FUNCTIONAL SKILLS",
+    "PROJECTS",
+    "CERTIFICATIONS",
+]
+
+
+def normalize_text(text: str) -> str:
+    """Fix common joined words while preserving technical terms."""
+
+    # Add missing spaces before known technical terms.
+    for term in TECH_TERMS:
+        pattern = r"([a-z])(" + re.escape(term) + r")"
+
+        text = re.sub(
+            pattern,
+            r"\1 \2",
+            text,
+            flags=re.IGNORECASE
+        )
+
+    # Add missing spaces after technical terms.
+    # Preserve plural forms such as REST APIs.
+    for term in TECH_TERMS:
+        pattern = (
+            r"(" + re.escape(term) + r")"
+            r"(?=[a-z]{2,})"
+        )
+
+        text = re.sub(
+            pattern,
+            r"\1 ",
+            text,
+            flags=re.IGNORECASE
+        )
+
+    # Separate section headings from preceding text.
+    for heading in SECTION_HEADINGS:
+        pattern = r"\s*(?=" + re.escape(heading) + r"\b)"
+
+        text = re.sub(
+            pattern,
+            "\n",
+            text,
+            flags=re.IGNORECASE
+        )
+
+    return text
+
 
 def clean_text(text: str) -> str:
-    """Clean text while preserving line breaks."""
+    """Clean extracted text while preserving line breaks."""
 
     lines = []
 
@@ -19,8 +93,15 @@ def clean_text(text: str) -> str:
         if line:
             lines.append(line)
 
-    return "\n".join(lines)
+    cleaned_text = "\n".join(lines)
 
+    cleaned_text = normalize_text(cleaned_text)
+
+    # Clean spacing after normalization.
+    cleaned_text = re.sub(r"[ \t]+", " ", cleaned_text)
+    cleaned_text = re.sub(r"\n{2,}", "\n", cleaned_text)
+
+    return cleaned_text.strip()
 
 
 def extract_pdf_text(file_bytes: bytes) -> str:
@@ -29,8 +110,13 @@ def extract_pdf_text(file_bytes: bytes) -> str:
     extracted_text = []
 
     with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+
+        # Correct iteration: use pdf.pages
         for page in pdf.pages:
-            page_text = page.extract_text()
+            page_text = page.extract_text(
+                x_tolerance=2,
+                y_tolerance=3
+            )
 
             if page_text:
                 extracted_text.append(page_text)
@@ -42,19 +128,27 @@ def extract_docx_text(file_bytes: bytes) -> str:
     """Extract text from DOCX."""
 
     document = Document(io.BytesIO(file_bytes))
-
     extracted_text = []
 
+    # Extract paragraphs.
     for paragraph in document.paragraphs:
+
         if paragraph.text.strip():
             extracted_text.append(paragraph.text)
 
-    # Extract text from tables
+    # Extract tables.
     for table in document.tables:
+
         for row in table.rows:
-            for cell in row.cells:
-                if cell.text.strip():
-                    extracted_text.append(cell.text)
+
+            row_text = [
+                cell.text.strip()
+                for cell in row.cells
+                if cell.text.strip()
+            ]
+
+            if row_text:
+                extracted_text.append(" | ".join(row_text))
 
     return "\n".join(extracted_text)
 
@@ -71,11 +165,15 @@ def extract_resume_text(filename: str, file_bytes: bytes) -> str:
         text = extract_docx_text(file_bytes)
 
     else:
-        raise ValueError("Only PDF and DOCX files are supported.")
+        raise ValueError(
+            "Only PDF and DOCX files are supported."
+        )
 
     cleaned_text = clean_text(text)
 
     if not cleaned_text:
-        raise ValueError("No readable text found in document.")
+        raise ValueError(
+            "No readable text found in document."
+        )
 
     return cleaned_text

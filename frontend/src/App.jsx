@@ -13,8 +13,10 @@ function App() {
   const [error, setError] = useState("");
   const [summary, setSummary] = useState(null);
 
+  // Handle resume file selection
   function handleFileChange(event) {
     const selectedFiles = Array.from(event.target.files || []);
+
     const validFiles = selectedFiles.filter((file) =>
       /\.(pdf|docx)$/i.test(file.name)
     );
@@ -31,6 +33,7 @@ function App() {
     setSummary(null);
   }
 
+  // Run AI matching
   async function handleMatch() {
     setError("");
 
@@ -40,11 +43,12 @@ function App() {
     }
 
     if (files.length < 1) {
-      setError("Please upload at least 10 PDF or DOCX resumes.");
+      setError("Please upload at least one PDF or DOCX resume.");
       return;
     }
 
     const formData = new FormData();
+
     formData.append("jd_text", jdText);
 
     files.forEach((file) => {
@@ -70,6 +74,7 @@ function App() {
       const data = await response.json();
 
       setResults(data.ranked_candidates || []);
+
       setSummary({
         total: data.total_uploaded,
         successful: data.successful,
@@ -95,32 +100,49 @@ function App() {
     }
   }
 
+  // Format experience
   function formatExperience(value) {
-    if (value === null || value === undefined) return "Not identified";
+    if (value === null || value === undefined) {
+      return "Not identified";
+    }
+
     return `${value} ${value === 1 ? "year" : "years"}`;
   }
 
-  const candidateInfo = selectedCandidate?.candidate_information;
-  const analysis = selectedCandidate?.matching_analysis;
+  const candidateInfo =
+    selectedCandidate?.candidate_information || {};
+
+  const analysis =
+    selectedCandidate?.matching_analysis || {};
 
   return (
     <div className="app">
+
+      {/* Header */}
       <header className="topbar">
         <div className="brand">
           <div className="brand-icon">AI</div>
+
           <div>
             <h1>Resume Matcher</h1>
             <p>AI-powered candidate evaluation</p>
           </div>
         </div>
-        <span className="header-label">Recruiter Dashboard</span>
+
+        <span className="header-label">
+          Recruiter Dashboard
+        </span>
       </header>
 
       <main className="dashboard">
+
+        {/* Page Heading */}
         <section className="page-heading">
           <div>
             <p className="eyebrow">TALENT ACQUISITION</p>
+
             <h2>Candidate Matching Dashboard</h2>
+
             <p className="subtitle">
               Compare resumes against job requirements and identify the
               strongest candidates.
@@ -128,10 +150,14 @@ function App() {
           </div>
         </section>
 
+        {/* Input Section */}
         <section className="input-grid">
+
+          {/* Job Description */}
           <div className="panel jd-panel">
             <div className="section-heading">
               <div className="step-number">01</div>
+
               <div>
                 <h3>Job Description</h3>
                 <p>Enter the job requirements below.</p>
@@ -151,9 +177,11 @@ function App() {
             </div>
           </div>
 
+          {/* Resume Upload */}
           <div className="panel upload-panel">
             <div className="section-heading">
               <div className="step-number">02</div>
+
               <div>
                 <h3>Upload Resumes</h3>
                 <p>Select multiple candidate resumes.</p>
@@ -167,27 +195,46 @@ function App() {
                 multiple
                 onChange={handleFileChange}
               />
+
               <div className="upload-icon">↑</div>
+
               <strong>Click to upload resumes</strong>
+
               <span>PDF and DOCX files only</span>
-              <span className="upload-limit">Upload one or more PDF/DOCX resumes</span>
+
+              <span className="upload-limit">
+                Upload one or more PDF/DOCX resumes
+              </span>
             </label>
 
             <div className="file-summary">
               <span>{files.length} files selected</span>
+
               {files.length >= 1 ? (
-              <span className="valid-text">Ready to process</span>
+                <span className="valid-text">
+                  Ready to process
+                </span>
               ) : (
-                 <span>Select at least one resume</span>
-         )}
+                <span>Select at least one resume</span>
+              )}
             </div>
 
             {files.length > 0 && (
               <div className="file-list">
                 {files.map((file, index) => (
-                  <div className="file-item" key={`${file.name}-${index}`}>
-                    <span className="file-icon">PDF</span>
-                    <span className="file-name">{file.name}</span>
+                  <div
+                    className="file-item"
+                    key={`${file.name}-${index}`}
+                  >
+                    <span className="file-icon">
+                      {file.name.toLowerCase().endsWith(".pdf")
+                        ? "PDF"
+                        : "DOCX"}
+                    </span>
+
+                    <span className="file-name">
+                      {file.name}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -195,6 +242,7 @@ function App() {
           </div>
         </section>
 
+        {/* Matching Button */}
         <div className="action-row">
           <button
             className="match-button"
@@ -202,8 +250,10 @@ function App() {
             disabled={loading}
           >
             {loading ? "Analyzing resumes..." : "Run AI Matching"}
+
             {!loading && <span>→</span>}
           </button>
+
           {loading && (
             <span className="loading-message">
               Processing resumes. This may take a little time.
@@ -211,28 +261,46 @@ function App() {
           )}
         </div>
 
-        {error && <div className="error-message">{error}</div>}
+        {/* Error Message */}
+        {error && (
+          <div className="error-message">
+            {error}
+          </div>
+        )}
 
+        {/* Summary Cards */}
         {summary && (
           <section className="summary-grid">
+
             <div className="summary-card">
               <span>Total uploaded</span>
               <strong>{summary.total}</strong>
             </div>
+
             <div className="summary-card">
               <span>Successfully processed</span>
-              <strong className="success-number">{summary.successful}</strong>
+
+              <strong className="success-number">
+                {summary.successful}
+              </strong>
             </div>
+
             <div className="summary-card">
               <span>Failed</span>
-              <strong className="failed-number">{summary.failed}</strong>
+
+              <strong className="failed-number">
+                {summary.failed}
+              </strong>
             </div>
+
           </section>
         )}
 
+        {/* Failed Files */}
         {summary?.failedFiles?.length > 0 && (
           <div className="failed-files">
             <h4>Files that could not be processed</h4>
+
             {summary.failedFiles.map((file, index) => (
               <p key={index}>
                 <strong>{file.filename}:</strong> {file.error}
@@ -241,20 +309,28 @@ function App() {
           </div>
         )}
 
+        {/* Matching Results */}
         {results.length > 0 && (
           <>
             <section className="results-section">
+
               <div className="results-heading">
                 <div>
                   <p className="eyebrow">MATCHING RESULTS</p>
+
                   <h3>Ranked Candidates</h3>
-                  <p>Click a candidate to view their detailed analysis.</p>
+
+                  <p>
+                    Click a candidate to view their detailed analysis.
+                  </p>
                 </div>
+
                 <span className="result-count">
                   {results.length} candidates
                 </span>
               </div>
 
+              {/* Ranking Table */}
               <div className="table-wrapper">
                 <table>
                   <thead>
@@ -267,10 +343,21 @@ function App() {
                       <th>Action</th>
                     </tr>
                   </thead>
+
                   <tbody>
                     {results.map((candidate) => {
-                      const info = candidate.candidate_information;
-                      const match = candidate.matching_analysis;
+                      const info =
+                        candidate.candidate_information || {};
+
+                      const match =
+                        candidate.matching_analysis || {};
+
+                      const matchedSkills =
+                        match.matched_skills || [];
+
+                      const missingSkills =
+                        match.missing_skills || [];
+
                       const isSelected =
                         selectedCandidate?.rank === candidate.rank;
 
@@ -284,25 +371,39 @@ function App() {
                               #{candidate.rank}
                             </span>
                           </td>
+
                           <td>
-                            <strong>{info.name || candidate.filename}</strong>
-                            <small>{info.email || "Email not identified"}</small>
+                            <strong>
+                              {info.name || candidate.filename}
+                            </strong>
+
+                            <small>
+                              {info.email || "Email not identified"}
+                            </small>
                           </td>
-                          <td>{formatExperience(info.experience_years)}</td>
+
+                          <td>
+                            {formatExperience(info.experience_years)}
+                          </td>
+
                           <td>
                             <span className="score-value">
-                              {match.overall_matching_score}%
+                              {match.overall_matching_score ?? 0}%
                             </span>
                           </td>
+
                           <td>
-                            {match.matched_skills.length} /{" "}
-                            {match.matched_skills.length +
-                              match.missing_skills.length}
+                             {match.matched_requirement_count ?? matchedSkills.length} /{" "}
+                             {match.total_requirement_count ??
+                                matchedSkills.length + missingSkills.length}
                           </td>
+
                           <td>
                             <button
                               className="view-button"
-                              onClick={() => setSelectedCandidate(candidate)}
+                              onClick={() =>
+                                setSelectedCandidate(candidate)
+                              }
                             >
                               View analysis
                             </button>
@@ -315,112 +416,240 @@ function App() {
               </div>
             </section>
 
+            {/* Candidate Analysis */}
             {selectedCandidate && (
               <section className="analysis-section">
+
                 <div className="results-heading">
                   <div>
                     <p className="eyebrow">CANDIDATE DETAILS</p>
+
                     <h3>Candidate Analysis</h3>
+
                     <p>
                       Detailed evaluation of the selected candidate against
                       the job description.
                     </p>
                   </div>
+
                   <span className="rank-badge">
                     Rank #{selectedCandidate.rank}
                   </span>
                 </div>
 
                 <div className="analysis-grid">
+
+                  {/* Basic Candidate Information */}
                   <div className="panel candidate-panel">
                     <h4>Candidate Information</h4>
+
                     <div className="candidate-name">
-                      {candidateInfo.name || selectedCandidate.filename}
+                      {candidateInfo.name ||
+                        selectedCandidate.filename}
                     </div>
 
                     <div className="info-list">
+
                       <div>
                         <span>Email</span>
-                        <strong>{candidateInfo.email || "Not identified"}</strong>
-                      </div>
-                      <div>
-                        <span>Phone</span>
-                        <strong>{candidateInfo.phone || "Not identified"}</strong>
-                      </div>
-                      <div>
-                        <span>Experience</span>
+
                         <strong>
-                          {formatExperience(candidateInfo.experience_years)}
+                          {candidateInfo.email || "Not identified"}
                         </strong>
                       </div>
+
+                      <div>
+                        <span>Phone</span>
+
+                        <strong>
+                          {candidateInfo.phone || "Not identified"}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>Experience</span>
+
+                        <strong>
+                          {formatExperience(
+                            candidateInfo.experience_years
+                          )}
+                        </strong>
+                      </div>
+
                       <div>
                         <span>Education</span>
+
                         <strong>
                           {candidateInfo.education?.length
                             ? candidateInfo.education.join(", ")
                             : "Not identified"}
                         </strong>
                       </div>
+
                       <div>
                         <span>Resume</span>
-                        <strong>{selectedCandidate.filename}</strong>
+
+                        <strong>
+                          {selectedCandidate.filename}
+                        </strong>
                       </div>
+
                     </div>
                   </div>
 
+                  {/* Additional Candidate Details */}
+                  <div className="panel profile-details-panel">
+                    <h4>Additional Candidate Details</h4>
+
+                    <div className="info-list">
+
+                      <div>
+                        <span>Technical Skills</span>
+
+                        <strong>
+                          {(
+                            candidateInfo.technical_skills ||
+                            candidateInfo.skills ||
+                            []
+                          ).join(", ") || "Not identified"}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>Functional Skills</span>
+
+                        <strong>
+                          {candidateInfo.functional_skills?.join(", ") ||
+                            "Not identified"}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>Previous Companies</span>
+
+                        <strong>
+                          {candidateInfo.previous_companies?.join(", ") ||
+                            "Not identified"}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>Designations</span>
+
+                        <strong>
+                          {candidateInfo.designations?.join(", ") ||
+                            "Not identified"}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>Certifications</span>
+
+                        <strong>
+                          {candidateInfo.certifications?.join(", ") ||
+                            "Not identified"}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>Projects</span>
+
+                        <strong>
+                          {candidateInfo.projects?.join(" | ") ||
+                            "Not identified"}
+                        </strong>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  {/* Matching Score */}
                   <div className="panel score-panel">
                     <h4>Overall Matching Score</h4>
+
                     <div className="large-score">
-                      {analysis.overall_matching_score}%
+                      {analysis.overall_matching_score ?? 0}%
                     </div>
+
                     <div className="score-track">
                       <div
                         className="score-fill"
                         style={{
-                          width: `${analysis.overall_matching_score}%`,
+                          width: `${analysis.overall_matching_score ?? 0}%`,
                         }}
                       />
                     </div>
 
                     <div className="score-breakdown">
+
                       <div>
                         <span>Skill score</span>
-                        <strong>{analysis.skill_score}%</strong>
+
+                        <strong>
+                          {analysis.skill_score ?? 0}%
+                        </strong>
                       </div>
+
                       <div>
                         <span>Semantic similarity</span>
-                        <strong>{analysis.semantic_similarity}%</strong>
+
+                        <strong>
+                          {analysis.semantic_similarity ?? 0}%
+                        </strong>
                       </div>
+
                       <div>
                         <span>Experience score</span>
-                        <strong>{analysis.experience_score}%</strong>
+
+                        <strong>
+                          {analysis.experience_score ?? 0}%
+                        </strong>
                       </div>
+
                     </div>
                   </div>
 
+                  {/* Matched Skills */}
                   <div className="panel skills-panel">
                     <h4>Matched Skills</h4>
-                    <p>Skills found in the candidate's resume.</p>
+
+                    <p>
+                      Skills found in the candidate's resume.
+                    </p>
+
                     <div className="skill-list">
-                      {analysis.matched_skills.length > 0 ? (
+                      {analysis.matched_skills?.length > 0 ? (
                         analysis.matched_skills.map((skill) => (
-                          <span className="skill-tag matched" key={skill}>
+                          <span
+                            className="skill-tag matched"
+                            key={skill}
+                          >
                             ✓ {skill}
                           </span>
                         ))
                       ) : (
-                        <span className="empty-text">No matched skills found.</span>
+                        <span className="empty-text">
+                          No matched skills found.
+                        </span>
                       )}
                     </div>
                   </div>
 
+                  {/* Missing Skills */}
                   <div className="panel skills-panel">
                     <h4>Missing Skills</h4>
-                    <p>Required skills not found in the resume.</p>
+
+                    <p>
+                      Required skills not found in the resume.
+                    </p>
+
                     <div className="skill-list">
-                      {analysis.missing_skills.length > 0 ? (
+                      {analysis.missing_skills?.length > 0 ? (
                         analysis.missing_skills.map((skill) => (
-                          <span className="skill-tag missing" key={skill}>
+                          <span
+                            className="skill-tag missing"
+                            key={skill}
+                          >
                             {skill}
                           </span>
                         ))
@@ -432,46 +661,61 @@ function App() {
                     </div>
                   </div>
 
+                  {/* Experience Comparison */}
                   <div className="panel experience-panel">
                     <h4>Experience Comparison</h4>
+
                     <div className="experience-comparison">
+
                       <div>
                         <span>Candidate experience</span>
+
                         <strong>
                           {formatExperience(
                             analysis.candidate_experience_years
                           )}
                         </strong>
                       </div>
+
                       <div>
                         <span>Required experience</span>
+
                         <strong>
                           {formatExperience(
                             analysis.required_experience_years
                           )}
                         </strong>
                       </div>
+
                     </div>
                   </div>
 
+                  {/* Score Reasons */}
                   <div className="panel reasons-panel">
                     <h4>Reasons Behind the Score</h4>
+
                     <ul>
-                      {analysis.reasons.map((reason, index) => (
-                        <li key={index}>{reason}</li>
-                      ))}
+                      {(analysis.reasons || []).map(
+                        (reason, index) => (
+                          <li key={index}>{reason}</li>
+                        )
+                      )}
                     </ul>
                   </div>
+
                 </div>
               </section>
             )}
           </>
         )}
+
       </main>
 
+      {/* Footer */}
       <footer>
         AI Resume Matcher · Candidate evaluation and ranking system
       </footer>
+
     </div>
   );
 }

@@ -1,132 +1,232 @@
-# AI-Based Resume Matching & Candidate Ranking System
+# AI Resume Matcher
 
-An AI-powered web application that compares multiple candidate resumes against a Job Description (JD), calculates matching scores, and ranks candidates based on their suitability for the role.
+An AI-powered resume screening and candidate ranking system that analyzes multiple resumes against a given Job Description (JD). The application extracts candidate information, evaluates skill compatibility, calculates matching scores, and ranks candidates based on their suitability for a job role.
+
+The system combines Natural Language Processing (NLP), semantic similarity, rule-based matching, and a weighted scoring mechanism to simplify the recruitment screening process.
+
+---
+
+## Table of Contents
+
+- [Project Overview](#project-overview)
+- [Problem Statement](#problem-statement)
+- [Objectives](#objectives)
+- [Key Features](#key-features)
+- [Technology Stack](#technology-stack)
+- [System Architecture](#system-architecture)
+- [Project Structure](#project-structure)
+- [Matching Methodology](#matching-methodology)
+- [Installation and Setup](#installation-and-setup)
+- [Running the Application](#running-the-application)
+- [Application Workflow](#application-workflow)
+- [Sample Data](#sample-data)
+- [API Documentation](#api-documentation)
+- [Future Enhancements](#future-enhancements)
+
+---
 
 ## Project Overview
 
-The AI Resume Matching System helps recruiters evaluate multiple resumes efficiently. It extracts candidate information from PDF and DOCX files, identifies relevant skills and experience, and uses semantic similarity to compare resumes with a job description.
+AI Resume Matcher is a web-based recruitment assistance system designed to automate the initial stages of resume screening.
 
-The application supports batch resume processing and provides a candidate ranking dashboard with detailed matching analysis.
+Recruiters can upload multiple resumes and provide a Job Description. The system extracts relevant information from PDF and DOCX files, identifies candidate skills and experience, and compares each candidate's profile with the job requirements.
+
+Using Sentence Transformers and cosine similarity, the system evaluates semantic relevance in addition to matching individual skills.
+
+Candidates are then assigned matching scores and ranked according to their overall compatibility with the Job Description.
+
+## Problem Statement
+
+Traditional resume screening is a time-consuming process, especially when recruiters receive a large number of applications.
+
+Manually reviewing resumes can lead to:
+
+- Significant time consumption.
+- Difficulty identifying relevant skills.
+- Inconsistent candidate evaluation.
+- Challenges in comparing multiple candidates.
+- Possibility of overlooking suitable candidates.
+
+This project addresses these challenges by providing an automated resume screening and ranking system.
+
+## Objectives
+
+1. Automate resume information extraction.
+2. Support bulk uploading of candidate resumes.
+3. Extract technical skills, functional skills, education, experience, and other candidate details.
+4. Analyze Job Descriptions and identify required qualifications.
+5. Calculate candidate compatibility using multiple evaluation parameters.
+6. Use semantic similarity to understand contextual relevance.
+7. Identify matched and missing skills.
+8. Rank candidates based on their overall matching scores.
+9. Provide a dashboard for viewing candidate information and evaluation results.
 
 ## Key Features
 
-### 1. Job Description Analysis
-- Enter a Job Description.
-- Extract required technical skills.
-- Identify required experience.
-- Extract educational qualifications.
+### 1. Multiple Resume Upload
 
-### 2. Resume Upload and Parsing
-- Upload multiple resumes in one batch.
-- Supports PDF and DOCX formats.
-- Extract candidate name, email, phone number, skills, experience and education.
+- Upload multiple resumes in a single operation.
+- Supports PDF and DOCX file formats.
+- Processes uploaded resumes individually.
+- Displays successful and failed processing counts.
 
-### 3. AI-Based Resume Matching
-- Semantic similarity using Sentence Transformers.
-- Skill matching and missing skill identification.
-- Candidate experience evaluation.
-- Overall matching score between 0 and 100.
+### 2. Resume Information Extraction
 
-### 4. Candidate Ranking Dashboard
-- Automatically rank candidates by matching score.
-- Display candidate experience and matching percentage.
-- Show matched skill counts.
-- Select candidates to view detailed analysis.
+Automatically extracts the following candidate information:
 
-### 5. Candidate-Level Analysis
-- Extracted candidate information.
+| Information | Description |
+|---|---|
+| Candidate Name | Name of the candidate |
+| Email | Candidate email address |
+| Phone Number | Contact number |
+| Technical Skills | Programming languages, frameworks, tools, and technologies |
+| Functional Skills | Communication, teamwork, problem-solving, etc. |
+| Experience | Total professional experience |
+| Education | Academic qualifications |
+| Previous Companies | Companies mentioned in the resume |
+| Designations | Previous job roles and designations |
+| Certifications | Professional certifications |
+| Projects | Project titles and descriptions |
+
+### 3. Job Description Analysis
+
+The system analyzes the provided Job Description and identifies:
+
+- Required technical skills.
+- Functional skills.
+- Required experience.
+- Educational qualifications.
+- Technical skill alternatives and groups.
+
+### 4. AI-Based Semantic Matching
+
+- Uses Sentence Transformers for text embeddings.
+- Uses the `all-MiniLM-L6-v2` pretrained model.
+- Converts resume and Job Description text into numerical vector representations.
+- Uses cosine similarity to calculate semantic relevance.
+
+### 5. Weighted Matching Algorithm
+
+The system evaluates candidates using multiple parameters and combines them into an overall matching score.
+
+### 6. Candidate Ranking
+
+- Calculates an overall matching score for every candidate.
+- Ranks candidates based on their scores.
+- Displays candidate information alongside matching results.
+- Helps recruiters identify candidates whose profiles best match the job requirements.
+
+### 7. Matching Breakdown
+
+The dashboard displays:
+
 - Overall matching score.
-- Matched and missing skills.
-- Experience comparison.
-- Score breakdown and reasons behind the score.
+- Skill matching score.
+- Semantic similarity score.
+- Matched technical skills.
+- Missing technical skills.
+- Matched functional skills.
+- Missing functional skills.
+- Candidate experience and education details.
+
+### 8. Candidate Details Dashboard
+
+Provides a detailed view of each candidate, including personal information, skills, experience, education, certifications, projects, previous companies, and matching evaluation.
+
+### 9. Database Integration
+
+- Uses SQLite for persistent data storage.
+- Uses SQLAlchemy for database interaction.
+- Stores Job Descriptions, candidate information, and matching results.
+
+---
 
 ## Technology Stack
 
-| Component | Technology |
-|---|---|
-| Frontend | React.js |
-| Frontend tooling | Vite |
-| Backend | Python, FastAPI |
-| Document parsing | pdfplumber, python-docx |
-| Semantic matching | Sentence Transformers |
-| Embedding model | all-MiniLM-L6-v2 |
-| Similarity calculation | Scikit-learn |
-| Numerical processing | NumPy |
-| API communication | REST API |
+### Backend
+
+- **Python** – Core programming language.
+- **FastAPI** – Backend framework for building REST APIs.
+- **SQLAlchemy** – Database ORM.
+- **SQLite** – Database management.
+- **Pydantic** – Data validation and request handling.
+
+### Frontend
+
+- **React.js** – Frontend library.
+- **Vite** – Frontend development and build tool.
+- **CSS** – Styling and dashboard layout.
+
+### AI / Machine Learning
+
+- **Sentence Transformers** – Semantic text embeddings.
+- **all-MiniLM-L6-v2** – Pretrained sentence embedding model.
+- **Scikit-learn** – Cosine similarity calculation.
+- **NLP** – Resume and Job Description text analysis.
+
+### Document Processing
+
+- **pdfplumber** – PDF text extraction.
+- **python-docx** – DOCX document processing.
+
+### Development Tools
+
+- Visual Studio Code
+- Git
+- GitHub
+- Postman
+- Swagger UI
+
+---
 
 ## System Architecture
 
+The application follows a frontend-backend architecture.
+
 ```text
-                 Recruiter
-                     |
-                     v
-          React Frontend (Vite)
-                     |
-                     v
-             FastAPI Backend
-                     |
-          +----------+----------+
-          |          |          |
-          v          v          v
-       Resume       JD       Matching
-       Parser     Parser      Service
-          |          |          |
-          v          v          v
-      Candidate   Required   Semantic
-      Information Requirements Matching
-          |          |          |
-          +----------+----------+
-                     |
-                     v
-             Matching Scores
-                     |
-                     v
-             Candidate Ranking
-                     |
-                     v
-           React Results Dashboard
-                     |
-                     v
-           Candidate-Level Analysis
+                 USER / RECRUITER
+                        |
+                        v
+               REACT FRONTEND
+                  (Vite)
+                        |
+                        v
+                 FASTAPI BACKEND
+                        |
+           +------------+------------+
+           |            |            |
+           v            v            v
+       Resume       Job Description  Matching
+       Router          Router         Router
+           |            |            |
+           v            v            v
+      Document       JD Parser     Matching
+      Parser                       Service
+           |            |            |
+           v            v            v
+      Candidate     Requirements   Scoring
+      Extractor      Extraction    Algorithm
+           |            |            |
+           +------------+------------+
+                        |
+                        v
+                AI / NLP PROCESSING
+                        |
+              Sentence Transformers
+                        |
+                Cosine Similarity
+                        |
+                        v
+                 CANDIDATE RANKING
+                        |
+                        v
+                  SQLITE DATABASE
+                        |
+                        v
+                MATCHING DASHBOARD
 ```
 
-## Matching Algorithm
-
-The system calculates an overall matching score using three components:
-
-1. **Skill Matching Score (50%)**
-
-   Measures how many required job skills are found in the candidate's resume.
-
-   Formula:
-
-   `Skill Score = (Matched Required Skills / Total Required Skills) × 100`
-
-2. **Semantic Similarity Score (30%)**
-
-   Uses the Sentence Transformers `all-MiniLM-L6-v2` model to generate embeddings for the resume and Job Description.
-
-   Cosine similarity is calculated between the two embeddings and converted into a percentage.
-
-3. **Experience Matching Score (20%)**
-
-   Compares the candidate's extracted experience with the required experience.
-
-   Formula:
-
-   `Experience Score = (Candidate Experience / Required Experience) × 100`
-
-   The experience score is capped at 100%.
-
-### Final Matching Score
-
-`Overall Score = (Skill Score × 0.50) + (Semantic Similarity × 0.30) + (Experience Score × 0.20)`
-
-The final score is rounded to two decimal places.
-
-Candidates are ranked in descending order of their overall matching scores.
-
-**Note:** Skills are identified using the project's predefined skill list. Education and qualifications are extracted from the Job Description and resumes, but they are not currently included as separate components in the weighted matching formula.
+---
 
 ## Project Structure
 
@@ -135,7 +235,13 @@ AI-Resume-Matcher/
 │
 ├── backend/
 │   ├── app/
+│   │   ├── __init__.py
+│   │   │
+│   │   ├── ai/
+│   │   │   └── __init__.py
+│   │   │
 │   │   ├── routers/
+│   │   │   ├── __init__.py
 │   │   │   ├── resume.py
 │   │   │   ├── jd.py
 │   │   │   └── matching.py
@@ -146,9 +252,9 @@ AI-Resume-Matcher/
 │   │   │   ├── jd_parser.py
 │   │   │   └── matching_service.py
 │   │   │
-│   │   ├── __init__.py
-│   │   ├── main.py
-│   │   └── database.py
+│   │   ├── database.py
+│   │   ├── models.py
+│   │   └── main.py
 │   │
 │   └── requirements.txt
 │
@@ -160,66 +266,129 @@ AI-Resume-Matcher/
 │   │
 │   ├── index.html
 │   ├── package.json
+│   ├── package-lock.json
 │   └── vite.config.js
+│
+├── sample_data/
+│   ├── sample_jd.txt
+│   └── resumes/
 │
 ├── .gitignore
 └── README.md
 ```
 
+---
+
+## Matching Methodology
+
+The application uses a weighted scoring approach to evaluate candidate suitability.
+
+The matching score is calculated using the following project-defined weights:
+
+| Evaluation Parameter | Weight |
+|---|---:|
+| Technical Skills | 40% |
+| Semantic Similarity | 20% |
+| Experience | 20% |
+| Education | 10% |
+| Functional Skills | 10% |
+| **Total** | **100%** |
+
+### Matching Formula
+
+Overall Matching Score:
+
+`(Technical Skills × 0.40) + (Semantic Similarity × 0.20) + (Experience × 0.20) + (Education × 0.10) + (Functional Skills × 0.10)`
+
+Each component is evaluated and represented as a percentage before calculating the final score.
+
+**Note:** These weights are configurable project-level choices, not an industry-standard recruitment formula.
+
+### Semantic Similarity
+
+The application uses the `all-MiniLM-L6-v2` Sentence Transformer model to generate embeddings for resume and Job Description text.
+
+Cosine similarity is used to measure how closely the resume content relates to the Job Description.
+
+This helps identify relevant information even when the exact wording differs.
+
+---
+
 ## Installation and Setup
 
 ### Prerequisites
 
-- Python 3.12 or compatible version.
+Make sure the following tools are installed:
+
+- Python 3.10 or later.
 - Node.js and npm.
 - Git.
+- Visual Studio Code (recommended).
 
 ### 1. Clone the Repository
 
 ```bash
-git clone YOUR_GITHUB_REPOSITORY_URL
+git clone https://github.com/YOUR_USERNAME/AI-Resume-Matcher.git
+```
+
+Navigate to the project directory:
+
+```bash
 cd AI-Resume-Matcher
 ```
 
-### 2. Backend Setup
+### 2. Create a Python Virtual Environment
 
-Create and activate a virtual environment.
+```bash
+python -m venv .venv
+```
+
+Activate the virtual environment.
 
 **Windows PowerShell:**
 
 ```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 ```
 
-Install backend dependencies:
+### 3. Install Backend Dependencies
 
 ```powershell
 cd backend
 pip install -r requirements.txt
 ```
 
-Start the FastAPI server:
+### 4. Install Frontend Dependencies
+
+Open another terminal:
 
 ```powershell
-uvicorn app.main:app --reload
+cd frontend
+npm install
+```
+
+---
+
+## Running the Application
+
+The backend and frontend must run in separate terminals.
+
+### Start the Backend
+
+```powershell
+cd backend
+..\.venv\Scripts\Activate.ps1
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 Backend URL:
 
 `http://127.0.0.1:8000`
 
-Interactive API documentation:
-
-`http://127.0.0.1:8000/docs`
-
-### 3. Frontend Setup
-
-Open a second terminal:
+### Start the Frontend
 
 ```powershell
 cd frontend
-npm install
 npm run dev
 ```
 
@@ -227,52 +396,97 @@ Frontend URL:
 
 `http://localhost:5173`
 
-Make sure the backend is running before using the frontend.
+Open the frontend URL in your browser to use the application.
 
-## API Endpoints
+---
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | `/` | Check application status |
-| GET | `/health` | Health check |
-| POST | `/resumes/extract` | Extract information from a resume |
-| POST | `/resumes/batch-extract` | Extract information from multiple resumes |
-| POST | `/job-description/analyze` | Analyze a Job Description |
-| POST | `/matching/batch` | Match and rank multiple resumes |
+## Application Workflow
 
-## Testing
+1. **Upload Resumes:** The recruiter uploads multiple candidate resumes in PDF or DOCX format.
+2. **Document Processing:** The backend extracts text from the uploaded documents.
+3. **Candidate Extraction:** Candidate details, skills, experience, education, certifications, projects, and previous companies are identified.
+4. **Enter Job Description:** The recruiter provides the Job Description for the required position.
+5. **JD Analysis:** The system extracts technical skills, functional skills, experience requirements, and qualifications.
+6. **AI Matching:** Resume and Job Description content are compared using semantic similarity and skill-based evaluation.
+7. **Score Calculation:** The weighted matching algorithm calculates the overall candidate score.
+8. **Candidate Ranking:** Candidates are sorted based on their matching scores.
+9. **View Results:** The recruiter can view candidate rankings, matching breakdowns, matched skills, missing skills, and detailed candidate profiles.
 
-The application was tested using 10 synthetic sample resumes in PDF and DOCX formats.
+---
 
-Testing covered:
+## Sample Data
 
+The project includes sample data for testing the resume screening workflow.
+
+Sample resumes are available in PDF and DOCX formats.
+
+You can use the sample Job Description and resumes to test:
+
+- Single resume processing.
 - Multiple resume uploads.
-- PDF and DOCX text extraction.
+- PDF document extraction.
+- DOCX document extraction.
 - Candidate information extraction.
-- Job Description requirement extraction.
+- Job Description parsing.
 - Skill matching.
-- Semantic similarity calculation.
-- Experience evaluation.
+- Semantic similarity.
 - Candidate ranking.
-- Candidate-level analysis.
+- Previous company extraction.
 
-Only synthetic/sample resume data should be used for testing. Do not upload real candidate personal information.
+---
 
-## Current Scope and Limitations
+## API Documentation
 
-- Skill extraction uses a predefined list of technical skills.
-- Candidate information extraction uses rule-based text patterns.
-- Semantic similarity is based on sentence embeddings and cosine similarity.
-- Matching results are returned for the uploaded batch; they are not persistently stored in a database.
-- The current frontend accepts pasted Job Description text.
+FastAPI provides interactive API documentation through Swagger UI.
 
-## Future Improvements
+After starting the backend, open:
 
-- Persistent storage for candidate and matching results.
-- More advanced skill and qualification extraction.
-- Support for uploading Job Description documents.
-- Improved resume parsing for different document layouts.
+`http://127.0.0.1:8000/docs`
+
+Swagger UI allows you to:
+
+- Explore available API endpoints.
+- View request and response schemas.
+- Upload resumes and test API operations.
+- Submit Job Descriptions.
+- Test matching functionality.
+
+---
+
+## Future Enhancements
+
+The following features can be considered for future development:
+
+- Advanced resume parsing using large language models.
+- More robust handling of different resume layouts and formats.
+- Candidate filtering by experience, skills, and education.
+- Exporting candidate ranking reports to PDF or Excel.
+- Recruiter authentication and role-based access control.
+- Cloud deployment.
+- Advanced analytics and recruitment insights.
+- Integration with Applicant Tracking Systems (ATS).
+
+---
+
+## Project Purpose
+
+This project was developed to demonstrate the practical application of Python backend development, AI/ML, Natural Language Processing, document processing, database management, and frontend integration in an automated recruitment screening system.
+
+**AI Resume Matcher – Making Resume Screening Smarter and More Efficient.**
+
+---
 
 ## Author
 
-Developed as a practical project demonstrating Python backend development, document processing, NLP, semantic matching, and React frontend development.
+## Author
+
+**Sidra Rahman**  
+B.Tech – Artificial Intelligence and Machine Learning  
+KNS Institute of Technology, Bengaluru (VTU)
+
+- GitHub: https://github.com/sid1r
+- LinkedIn:  https://www.linkedin.com/in/sidrarahman19
+- Email: sidrarahman01@gmail.com
+
+**Project:** AI Resume Matcher  
+**Technologies:** Python, FastAPI, React, SQLite, Sentence Transformers, Scikit-learn.
