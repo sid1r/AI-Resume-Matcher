@@ -1,3 +1,4 @@
+import os
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Depends
 from fastapi.openapi.utils import get_openapi
@@ -13,6 +14,7 @@ from app.auth.auth_router import router as auth_router
 from app.auth.auth_router import get_current_recruiter
 
 
+
 app = FastAPI(
     title="AI Resume Matching System",
     description="AI-based Resume Matching and Candidate Ranking API",
@@ -22,9 +24,19 @@ app = FastAPI(
 def create_database_tables():
     Base.metadata.create_all(bind=engine)
 
+frontend_url = os.getenv("FRONTEND_URL")
+
+allowed_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+if frontend_url:
+    allowed_origins.append(frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
