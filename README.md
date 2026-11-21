@@ -478,7 +478,7 @@ This project was developed to demonstrate the practical application of Python ba
 
 ## Author
 
-## Author
+
 
 **Sidra Rahman**  
 B.Tech – Artificial Intelligence and Machine Learning  
