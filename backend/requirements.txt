@@ -1,8 +1,3 @@
-fastapi
-uvicorn[standard]
-pdfplumber
-python-docx
-python-multipart
 
 fastapi
 uvicorn[standard]
@@ -15,3 +10,5 @@ python-dotenv
 sentence-transformers
 spacy
 scikit-learn
+pwdlib[argon2]
+python-jose[cryptography]

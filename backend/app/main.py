@@ -1,5 +1,5 @@
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.openapi.utils import get_openapi
 
 from app.routers.resume import router as resume_router
@@ -7,6 +7,10 @@ from app.routers.jd import router as jd_router
 from app.routers.matching import router as matching_router
 from app.database import Base, engine
 from app import models
+
+from app.auth import auth_models
+from app.auth.auth_router import router as auth_router
+from app.auth.auth_router import get_current_recruiter
 
 
 app = FastAPI(
@@ -26,9 +30,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(resume_router)
-app.include_router(jd_router)
-app.include_router(matching_router)
+# Public authentication routes
+app.include_router(auth_router)
+
+# Protected routes – recruiter login required
+app.include_router(
+    resume_router,
+    dependencies=[Depends(get_current_recruiter)]
+)
+
+app.include_router(
+    jd_router,
+    dependencies=[Depends(get_current_recruiter)]
+)
+
+app.include_router(
+    matching_router,
+    dependencies=[Depends(get_current_recruiter)]
+)
 
 
 @app.get("/")
